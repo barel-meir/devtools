@@ -35,6 +35,8 @@ def pre_process(lines: [str]):
 
 def transform_to_json(key_value_str):
     key, value = key_value_str.split(':')
+    value = format_value(value)
+
     key_parts = key.split('.')
 
     # Build the nested structure for the JSON
@@ -43,7 +45,11 @@ def transform_to_json(key_value_str):
     for part in key_parts[:-1]:
         current_dict[part] = {}
         current_dict = current_dict[part]
-    current_dict[key_parts[-1]] = value.strip()
+
+    if type(value) == str:
+        current_dict[key_parts[-1]] = value.strip()
+    else:
+        current_dict[key_parts[-1]] = value
 
     return json_data
 
@@ -61,12 +67,22 @@ def concat_nested_dicts(dict1, dict2):
     return result
 
 
+def format_value(value):
+    try:
+        value = float(value)
+    except ValueError:
+        # keet as str
+        pass
+    return value
+
+
 def parse_section(lines):
     lines = pre_process(lines)
     output = {}
     key_chained = ""
     for level, name, parent in parse_tree(lines):
         key, value = map(str.strip, name.split(':', 1))
+        value = format_value(value)
         if level == 0 and not name.endswith("_: "):
             output[key] = value
             key_chained = ""
