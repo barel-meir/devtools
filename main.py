@@ -29,6 +29,7 @@ def pre_process(lines: [str]):
             for j in range(int(leading_space / 3)):
                 lines[i] = f" {lines[i]}"
         lines[i] = lines[i].replace("\n", "")
+        lines[i] = lines[i].replace("\"", "")
 
     return lines
 
@@ -69,7 +70,8 @@ def concat_nested_dicts(dict1, dict2):
 
 def format_value(value):
     try:
-        value = float(value)
+        if "nan" != value.strip():
+            value = float(value)
     except ValueError:
         # keet as str
         pass
@@ -125,15 +127,30 @@ def parse_file(lines):
     return data
 
 
+def is_valid_json_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            json.load(file)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return False
+    return True
+
+
 def main():
-    filename = "example_data/ddsSpyEcorder-06-05-24_15-43-28.log"
-    with open(filename, 'r') as file:
+    input_filename = "example_data/ddsSpyEcorder-06-05-24_15-43-28.log"
+    output_filename = "output_data/parsed_data.json"
+
+    with open(input_filename, 'r') as file:
         lines = file.readlines()[12:]
 
     json_data = parse_file(lines)
-    print(json.dumps(json_data, indent=4))
-    with open("output_data/parsed_data.json", 'w') as json_file:
+    with open(output_filename, 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
+
+    if is_valid_json_file(output_filename):
+        print(f"The file '{output_filename}' contains valid JSON.")
+    else:
+        print(f"The file '{output_filename}' does not contain valid JSON.")
 
 
 if __name__ == "__main__":
