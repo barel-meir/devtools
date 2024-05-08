@@ -83,7 +83,7 @@ def parse_section(lines):
 
 
 def parse_file(lines):
-    data = []
+    data = {}
     # Initialize variables to hold data
     timestamp = None
     entry_data = []
@@ -93,7 +93,7 @@ def parse_file(lines):
         if re.match(r'\d{10}\.\d+\s+', line):
             # If this is not the first entry, append the previous data to the list
             if timestamp is not None and entry_data:
-                data.append({"timestamp": timestamp, "data":   parse_section(entry_data)})
+                data[timestamp] = parse_section(entry_data)
 
             # Extract timestamp
             timestamp = line.split()[0]
@@ -104,7 +104,7 @@ def parse_file(lines):
 
     # Append the last entry
     if timestamp is not None and entry_data:
-        data.append({"timestamp": timestamp, "data": parse_section(entry_data)})
+        data[timestamp] = parse_section(entry_data)
 
     return data
 
@@ -116,7 +116,7 @@ def main():
 
     json_data = parse_file(lines)
     print(json.dumps(json_data, indent=4))
-    with open("example_data/parsed_data.json", 'w') as json_file:
+    with open("output_data/parsed_data.json", 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
 
 
