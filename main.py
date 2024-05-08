@@ -92,7 +92,7 @@ def parse_file(lines):
         # Check if the line starts with a timestamp format
         if re.match(r'\d{10}\.\d+\s+', line):
             # If this is not the first entry, append the previous data to the list
-            if timestamp is not None:
+            if timestamp is not None and entry_data:
                 data.append({"timestamp": timestamp, "data":   parse_section(entry_data)})
 
             # Extract timestamp
@@ -103,135 +103,20 @@ def parse_file(lines):
             entry_data.append(line)
 
     # Append the last entry
-    if timestamp is not None:
+    if timestamp is not None and entry_data:
         data.append({"timestamp": timestamp, "data": parse_section(entry_data)})
 
     return data
 
 
 def main():
-    # Example usage
-    raw = """recipient_: 
-   platform_id_: ""
-   sensor_id_: ""
-   payload_id_: ""
-source_: 
-   platform_id_: "4444"
-   sensor_id_: ""
-   payload_id_: ""
-group_id_: ""
-fcu_mode_: "POSCTL"
-state_: 
-   val_: 1
-communication_status_: 0
-velocity_: 
-   linear_: 
-      x_: 0.011879418045282364
-      y_: 0.0093862051144242287
-      z_: -0.016274377703666687
-   angular_: 
-      x_: 0.00053120854629462903
-      y_: -0.00034977906565744258
-      z_: -4.3460903150019216e-05
-orientation_: 
-   yaw_: 301.019989
-   pitch_: 0.184050187
-   roll_: 0.273557574
-stamp_: 
-   sec_: 1714999415
-   nanosec_: 458338526
-position_: 
-   latitude_: 32.1486132
-   longitude_: 34.8543296
-   altitude_: 64.369
-home_position_: 
-   latitude_: 32.148612900000003
-   longitude_: 34.854328099999996
-   altitude_: 72.084999999999994
-battery_state_: 
-   header_: 
-      stamp_: 
-         sec_: 1714999415
-         nanosec_: 28129912
-      frame_id_: ""
-   voltage_: 49.0040016
-   temperature_: 0
-   current_: 17.4599991
-   charge_: nan
-   capacity_: nan
-   design_capacity_: 0
-   percentage_: 93
-   power_supply_status_: 2
-   power_supply_health_: 0
-   power_supply_technology_: 3
-   present_: true
-   cell_voltage_: 
-      [0]: 4.08300018
-      [1]: 4.08300018
-      [2]: 4.08300018
-      [3]: 4.08300018
-      [4]: 4.08300018
-      [5]: 4.08300018
-      [6]: 4.08300018
-      [7]: 4.08300018
-      [8]: 4.08300018
-      [9]: 4.08300018
-   cell_temperature_: 
-   location_: "id1"
-   serial_number_: ""
-mission_data_: 
-   id_: ""
-   lut_: 1714998204199
-   state_: 
-      val_: 7
-is_connected_to_ground_station_: false
-is_ground_station_exists_: false
-failure_: 
-   val_: 0
-platform_mode_: 
-   val_: 2
-battery_times_: 
-   seconds_to_pre_bingo_: 
-      sec_: 9999
-      nanosec_: 0
-   seconds_to_bingo_: 
-      sec_: 9999
-      nanosec_: 0
-   seconds_to_critical_bingo_: 
-      sec_: 9999
-      nanosec_: 0
-   seconds_to_dead_battery_: 
-      sec_: 0
-      nanosec_: 0
-emergencyLandingData_: NULL
-is_armed_: false
-pre_takeoff_ready_state_: 
-   val_: 1
-navigation_status_: 
-   stamp_: 
-      sec_: 1714999414
-      nanosec_: 2638392963
-   navigation_source_: 
-      val_: 5
-   anchor_source_: 
-      val_: 0
-   images_available_: true
-   telemetry_available_: true
-   gps_jam_: false
-   gps_spoof_: true
-   asio_ready_: true
-   estimated_delta_: 0
-   slam_quality_: 0
-   helios_voter_state_: 
-      val_: 3"""
-
-    filename = "ddsSpyEcorder-06-05-24_15-43-28.log"  # Replace with your file name
+    filename = "example_data/ddsSpyEcorder-06-05-24_15-43-28.log"
     with open(filename, 'r') as file:
         lines = file.readlines()[12:]
 
     json_data = parse_file(lines)
     print(json.dumps(json_data, indent=4))
-    with open("parsed_data.json", 'w') as json_file:
+    with open("example_data/parsed_data.json", 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
 
 
