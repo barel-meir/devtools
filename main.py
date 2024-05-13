@@ -1,5 +1,6 @@
 import json
 import re
+import csv
 
 
 def parse_tree(lines):
@@ -82,6 +83,7 @@ def parse_section(lines):
     lines = pre_process(lines)
     output = {}
     key_chained = ""
+    nested_section_flag = False
     for level, name, parent in parse_tree(lines):
         key, value = map(str.strip, name.split(':', 1))
         value = format_value(value)
@@ -92,10 +94,16 @@ def parse_section(lines):
             key_chained = f"{key}"
             output[key] = {}
         elif level > 0 and name.endswith("_: "):
+            spliited = key_chained.split(".")
+            key_chain_level = len(spliited)
+            if nested_section_flag and key_chain_level == level + 1:
+                key_chained = ".".join(spliited[:-1])
+            nested_section_flag = False
             key_chained = f"{key_chained}.{key}"
         elif level > 0 and not name.endswith("_: "):
             tmp_dict = transform_to_json(f"{key_chained}.{key}: {value}")
             output = concat_nested_dicts(tmp_dict, output)
+            nested_section_flag = True
 
     return output
 
@@ -136,8 +144,7 @@ def is_valid_json_file(file_path):
     return True
 
 
-def main():
-    input_filename = "example_data/ddsSpyEcorder-06-05-24_15-43-28.log"
+def parse_dds_spy_record_to_json(input_filename: str):
     output_filename = "output_data/parsed_data.json"
 
     with open(input_filename, 'r') as file:
@@ -145,6 +152,7 @@ def main():
 
     json_data = parse_file(lines)
     with open(output_filename, 'w') as json_file:
+        print(f'saving parsed data tp {output_filename}')
         json.dump(json_data, json_file, indent=4)
 
     if is_valid_json_file(output_filename):
@@ -152,6 +160,46 @@ def main():
     else:
         print(f"The file '{output_filename}' does not contain valid JSON.")
 
+    return json_data
+
+
+def create_csv(json_data, nested_patterns_str, csv_file):
+    nested_patterns = [pattern_str.split('.') for pattern_str in nested_patterns_str]
+    # Open the CSV file in write mode
+    with open(csv_file, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+
+        # Write header row with specific column names
+        writer.writerow(['Pattern', 'Value'])
+
+        # Iterate over each entry in the JSON data
+        for entry in json_data:
+            # Check if the entry matches any of the nested patterns
+            for pattern in nested_patterns:
+                # Search for the pattern within the entry
+                value = entry
+                for key in pattern:
+                    if key in value:
+                        value = value[key]
+                    else:
+                        value = None
+                        break
+
+                # If the pattern is found, create a CSV row
+                if value is not None:
+                    writer.writerow(['.'.join(pattern), value])
+
+
+def main():
+    input_filename = "example_data/subsample_2.log"
+    csv_file_name = f"output-{input_filename.split('.')[0]}.csv"
+    nested_patterns_str = ['battery_state_.voltage_', 'communication_status_', 'source_.platform_id_']
+
+    json_data = parse_dds_spy_record_to_json(input_filename)
+    # create_csv(json_data, nested_patterns_str, csv_file_name)
+
+
+# timestamp, batterytimes,position,
 
 if __name__ == "__main__":
     main()
