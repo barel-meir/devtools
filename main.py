@@ -176,15 +176,17 @@ def parse_dds_spy_record_to_json(input_filename: str):
 def get_value_from_path(json_data, path):
     keys = path.split(".")
     current_data = json_data
-    for key in keys:
-        if key.endswith("]"):
-            key, index = key[:-1].split("[")
-            index = int(index)
-            current_data = current_data[key][f"[{index}]"]
-        else:
-            current_data = current_data[key]
-    return current_data
-
+    try:
+        for key in keys:
+            if key.endswith("]"):
+                key, index = key[:-1].split("[")
+                index = int(index)
+                current_data = current_data[key][f"[{index}]"]
+            else:
+                current_data = current_data[key]
+        return current_data
+    except KeyError:
+        return ""
 
 def create_csv(json_data, nested_patterns_str, csv_file):
     nested_patterns = [pattern_str.split('.') for pattern_str in nested_patterns_str]
@@ -193,19 +195,28 @@ def create_csv(json_data, nested_patterns_str, csv_file):
         writer = csv.writer(csvfile)
 
         # Write header row with specific column names
-        writer.writerow(['Pattern', 'Value'])
+        results = []
+        fieldnames = ['Timestamp']
 
         # Iterate over each entry in the JSON data
         for entry in json_data:
             # Check if the entry matches any of the nested patterns
+            current_dict = {"Timestamp" : entry}
             for pattern in nested_patterns_str:
                 # Search for the pattern within the entry
                 value = get_value_from_path(json_data[entry], pattern)
 
                 # If the pattern is found, create a CSV row
                 if value is not None:
-                    writer.writerow([pattern, value])
+                    current_dict[pattern] = value
+                    if pattern not in fieldnames:
+                        fieldnames.append(pattern)
+            results.append(current_dict)
 
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for result in results:
+            writer.writerow(result)
 
 def main():
     input_filename = "example_data/subsample_2.log"
