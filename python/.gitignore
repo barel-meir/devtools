@@ -1,6 +1,6 @@
 env
 venv
-.idea
+../.idea
 .idea/
 example_data/
 output_data/
