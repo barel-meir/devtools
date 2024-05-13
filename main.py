@@ -173,6 +173,19 @@ def parse_dds_spy_record_to_json(input_filename: str):
     return json_data
 
 
+def get_value_from_path(json_data, path):
+    keys = path.split(".")
+    current_data = json_data
+    for key in keys:
+        if key.endswith("]"):
+            key, index = key[:-1].split("[")
+            index = int(index)
+            current_data = current_data[key][f"[{index}]"]
+        else:
+            current_data = current_data[key]
+    return current_data
+
+
 def create_csv(json_data, nested_patterns_str, csv_file):
     nested_patterns = [pattern_str.split('.') for pattern_str in nested_patterns_str]
     # Open the CSV file in write mode
@@ -185,28 +198,22 @@ def create_csv(json_data, nested_patterns_str, csv_file):
         # Iterate over each entry in the JSON data
         for entry in json_data:
             # Check if the entry matches any of the nested patterns
-            for pattern in nested_patterns:
+            for pattern in nested_patterns_str:
                 # Search for the pattern within the entry
-                value = entry
-                for key in pattern:
-                    if key in value:
-                        value = value[key]
-                    else:
-                        value = None
-                        break
+                value = get_value_from_path(json_data[entry], pattern)
 
                 # If the pattern is found, create a CSV row
                 if value is not None:
-                    writer.writerow(['.'.join(pattern), value])
+                    writer.writerow([pattern, value])
 
 
 def main():
     input_filename = "example_data/subsample_2.log"
-    csv_file_name = f"output-{input_filename.split('.')[0]}.csv"
+    csv_file_name = f"output-sss.csv"
     nested_patterns_str = ['battery_state_.voltage_', 'communication_status_', 'source_.platform_id_']
 
     json_data = parse_dds_spy_record_to_json(input_filename)
-    # create_csv(json_data, nested_patterns_str, csv_file_name)
+    create_csv(json_data, nested_patterns_str, csv_file_name)
 
 
 # timestamp, batterytimes,position,
