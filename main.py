@@ -84,6 +84,7 @@ def parse_section(lines):
     output = {}
     key_chained = ""
     nested_section_flag = False
+    prev_level = -1
     for level, name, parent in parse_tree(lines):
         key, value = map(str.strip, name.split(':', 1))
         value = format_value(value)
@@ -94,17 +95,26 @@ def parse_section(lines):
             key_chained = f"{key}"
             output[key] = {}
         elif level > 0 and name.endswith("_: "):
-            spliited = key_chained.split(".")
-            key_chain_level = len(spliited)
+            splited = key_chained.split(".")
+            key_chain_level = len(splited)
             if nested_section_flag and key_chain_level == level + 1:
-                key_chained = ".".join(spliited[:-1])
+                key_chained = ".".join(splited[:-1])
             nested_section_flag = False
             key_chained = f"{key_chained}.{key}"
         elif level > 0 and not name.endswith("_: "):
+            splited = key_chained.split(".")
+            key_chain_level = len(splited)
+            while key_chain_level > 1 and splited[-1] != parent.split(":")[0]:
+                key_chained = ".".join(splited[:-1])
+                splited = key_chained.split(".")
+                key_chain_level = len(splited)
+
+
             tmp_dict = transform_to_json(f"{key_chained}.{key}: {value}")
             output = concat_nested_dicts(tmp_dict, output)
             nested_section_flag = True
 
+        prev_level = level
     return output
 
 
