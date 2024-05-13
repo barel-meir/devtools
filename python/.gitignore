@@ -2,6 +2,6 @@ env
 venv
 ../.idea
 .idea/
-example_data/
-output_data/
+*/example_data/
+*/output_data/
 idea/
