@@ -209,7 +209,7 @@ def parse_dds_spy_record_to_json(input_filename: str) -> dict:
 
     json_data = parse_file(lines)
     with open(output_filename, 'w') as json_file:
-        print(f'saving parsed data tp {output_filename}')
+        print(f'saving parsed data to {output_filename}')
         json.dump(json_data, json_file, indent=4)
 
     if is_valid_json_file(output_filename):
