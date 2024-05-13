@@ -1,3 +1,4 @@
+import argparse
 import json
 import re
 import csv
@@ -278,15 +279,46 @@ def create_csv(json_data: dict, nested_patterns_str: [str], csv_file: str) -> No
             writer.writerow(result)
 
 
+def get_data() -> (str, str, str):
+
+    # Initialize ArgumentParser
+    parser = argparse.ArgumentParser(description="Parse DDS Spy record file and create CSV.")
+
+    # Add arguments
+    parser.add_argument("--input", metavar="input_filename", help="Input filename")
+    parser.add_argument("--output", metavar="csv_file_name", help="CSV output filename")
+    parser.add_argument("--patterns", metavar="nested_patterns_str", nargs="+", help="List of nested patterns")
+
+    # Parse command-line arguments
+    args = parser.parse_args()
+
+    # Get input filename
+    if args.input:
+        input_filename = args.input
+    else:
+        input_filename = input("Enter the input filename: ")
+
+    # Get CSV output filename
+    if args.output:
+        csv_file_name = args.output
+    else:
+        csv_file_name = input("Enter the CSV filename: ")
+
+    # Get nested patterns
+    if args.patterns:
+        nested_patterns_str = args.patterns
+    else:
+        nested_patterns_input = input("Enter nested patterns separated by spaces: ")
+        nested_patterns_str = nested_patterns_input.split()
+
+    return input_filename, csv_file_name, nested_patterns_str
+
+
 def main():
     """
     Main function to execute the parsing and CSV creation process.
     """
-
-    input_filename = "example_data/subsample_2.log"
-    csv_file_name = f"output-sss.csv"
-    nested_patterns_str = ['battery_state_.voltage_', 'communication_status_', 'source_.platform_id_']
-
+    input_filename, csv_file_name, nested_patterns_str = get_data()
     json_data = parse_dds_spy_record_to_json(input_filename)
     create_csv(json_data, nested_patterns_str, csv_file_name)
 
